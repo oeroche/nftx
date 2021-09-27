@@ -6,7 +6,7 @@ const { expect } = chai.use(chaiAsPromised);
 import { ethers, network } from 'hardhat';
 import { Nftx, Nftx__factory } from '../typechain';
 
-const INITIAL_OFFER = 24300;
+const INITIAL_OFFER = 2430;
 const EVOLUTION_STEPS = 5;
 const SEED = 1234567890;
 
