@@ -5,30 +5,49 @@ name: Setup node and yarn
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the next branch
-  [pull_request, workflow_dispatch]
+  [pull_request, workflow_dispatch, push]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  setup:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-      
+      - uses: actions/checkout@v2      
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.4.0
         with:
           node-version: 12.x
-      
       - name: install yarn
         run: npm install yarn -g
+      - name: use cache
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Install node dependencies
+        run: yarn install
 
+  tests:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v2      
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.4.0
+        with:
+          node-version: 12.x
+      - name: install yarn
+        run: npm install yarn -g
+      - name: use cache '**/node_modules'
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Run tests
+        run: yarn run test
+      
