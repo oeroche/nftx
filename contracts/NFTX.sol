@@ -2,6 +2,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
 
 contract Nftx is ERC721URIStorage {
@@ -43,10 +44,13 @@ contract Nftx is ERC721URIStorage {
             "evolution steps count can't be 0"
         );
         require(
-            initialSupply_ -
-                (3**evolution_steps_count_) *
-                (initialSupply_ / (3**evolution_steps_count_)) ==
-                0,
+            SafeMath.sub(
+                initialSupply_,
+                SafeMath.mul(
+                    3**evolution_steps_count_,
+                    initialSupply_ / (3**evolution_steps_count_)
+                )
+            ) == 0,
             "Initial supply cannot support evolution steps count"
         );
         _;
@@ -73,7 +77,7 @@ contract Nftx is ERC721URIStorage {
 
     function generateToken(uint256 seed_) internal view returns (NFTX memory) {
         uint256 rand = uint256(keccak256(abi.encode(seed_)));
-        return NFTX(uint32(rand % MODULUS), 0);
+        return NFTX(uint32(SafeMath.mod(rand, MODULUS)), 0);
     }
 
     function generateCursors(uint8 evolution_steps_count_) private {
@@ -87,7 +91,10 @@ contract Nftx is ERC721URIStorage {
 
         for (uint8 i = 2; i <= evolution_steps_count_; i++) {
             console.log("i is %s", i);
-            cursors[i] = cursors[i - 1] + (cursors[i - 1] - cursors[i - 2]) / 3;
+            cursors[i] = SafeMath.add(
+                cursors[i - 1],
+                SafeMath.div(SafeMath.sub(cursors[i - 1], cursors[i - 2]), 3)
+            );
             console.log("cursors[i] is %s", cursors[i]);
         }
     }
@@ -105,7 +112,10 @@ contract Nftx is ERC721URIStorage {
     }
 
     function getGen0Nft(uint256 id_) internal view returns (NFTX memory) {
-        return tokens[(BLIND_AUCTION_STARTING_INDEX + id_) % INITIAL_SUPPLY];
+        return
+            tokens[
+                SafeMath.mod(BLIND_AUCTION_STARTING_INDEX + id_, INITIAL_SUPPLY)
+            ];
     }
 
     function getNft(uint256 id_)
@@ -135,7 +145,10 @@ contract Nftx is ERC721URIStorage {
     }
 
     function turnBlindAuctionOff() internal {
-        BLIND_AUCTION_STARTING_INDEX = block.number % INITIAL_SUPPLY;
+        BLIND_AUCTION_STARTING_INDEX = SafeMath.mod(
+            block.number,
+            INITIAL_SUPPLY
+        );
         IS_BLIND_AUCTION = false;
     }
 }
