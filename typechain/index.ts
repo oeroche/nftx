@@ -8,6 +8,7 @@ export type { IERC721 } from "./IERC721";
 export type { IERC721Receiver } from "./IERC721Receiver";
 export type { ERC165 } from "./ERC165";
 export type { IERC165 } from "./IERC165";
+export type { Contributors } from "./Contributors";
 export type { GeneScience } from "./GeneScience";
 export type { Nftx } from "./Nftx";
 
@@ -18,5 +19,6 @@ export { IERC721__factory } from "./factories/IERC721__factory";
 export { IERC721Receiver__factory } from "./factories/IERC721Receiver__factory";
 export { ERC165__factory } from "./factories/ERC165__factory";
 export { IERC165__factory } from "./factories/IERC165__factory";
+export { Contributors__factory } from "./factories/Contributors__factory";
 export { GeneScience__factory } from "./factories/GeneScience__factory";
 export { Nftx__factory } from "./factories/Nftx__factory";

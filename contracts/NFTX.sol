@@ -4,17 +4,19 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
+import "./GeneScience.sol";
+import "./Contributors.sol";
 
 contract Nftx is ERC721URIStorage {
-    uint8 NUMBER_OF_GENES = 10;
-    uint256 MODULUS = 10**NUMBER_OF_GENES;
-
+    address payable private owner;
+    GeneScience private _geneScience;
+    Contributors private _contributors;
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
     struct NFTX {
         uint32 _genes;
-        uint16 _generation;
+        uint8 _generation;
     }
 
     mapping(uint256 => NFTX) tokens;
@@ -22,6 +24,7 @@ contract Nftx is ERC721URIStorage {
     mapping(uint8 => uint256) public cursors;
 
     uint16 private INITIAL_SUPPLY;
+    uint8 public MAX_EVOL;
 
     bool private INITIALIZED;
     bool private IS_BLIND_AUCTION;
@@ -35,7 +38,7 @@ contract Nftx is ERC721URIStorage {
         _;
     }
 
-    modifier initialSupplyisCompatibleWithEvolutionSteps(
+    modifier initialSupplyIsCompatibleWithEvolutionSteps(
         uint16 initialSupply_,
         uint8 evolution_steps_count_
     ) {
@@ -56,28 +59,78 @@ contract Nftx is ERC721URIStorage {
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    modifier onlyContributor() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    modifier distributePayment() {
+        _;
+        _contributors.distributePayment(msg.value);
+    }
+
+    modifier canWithdraw() {
+        require(_contributors.withdrawable(msg.sender) > 0);
+        _;
+    }
+
+    modifier recordWithdraw(uint256 amount) {
+        _;
+        _contributors.recordWithdraw(msg.sender, amount);
+    }
+
     constructor(
         uint256 seed_,
         uint16 initialSupply_,
-        uint8 evolution_steps_count_
+        uint8 evolution_steps_count_,
+        GeneScience geneScience_,
+        Contributors contributors_
     )
         ERC721("EvolutionToken", "EVOT")
-        initialSupplyisCompatibleWithEvolutionSteps(
+        initialSupplyIsCompatibleWithEvolutionSteps(
             initialSupply_,
             evolution_steps_count_
         )
     {
+        owner = payable(msg.sender);
+        _geneScience = geneScience_;
+        _contributors = contributors_;
         INITIAL_SUPPLY = initialSupply_;
         IS_BLIND_AUCTION = true;
         INITIALIZED = false;
+        MAX_EVOL = evolution_steps_count_;
         seed = seed_;
         generateCursors(evolution_steps_count_);
         INITIALIZED = true;
     }
 
     function generateToken(uint256 seed_) internal view returns (NFTX memory) {
-        uint256 rand = uint256(keccak256(abi.encode(seed_)));
-        return NFTX(uint32(SafeMath.mod(rand, MODULUS)), 0);
+        return NFTX(_geneScience.getNewDNA(seed_), 0);
+    }
+
+    function mergeTokens(
+        NFTX memory token1,
+        NFTX memory token2,
+        NFTX memory token3
+    ) private view returns (NFTX memory) {
+        require(
+            token1._generation == token2._generation &&
+                token2._generation == token3._generation
+        );
+        return
+            NFTX(
+                _geneScience.mergeDNA(
+                    token1._genes,
+                    token1._genes,
+                    token1._genes
+                ),
+                token1._generation + 1
+            );
     }
 
     function generateCursors(uint8 evolution_steps_count_) private {
@@ -90,12 +143,10 @@ contract Nftx is ERC721URIStorage {
         cursors[1] = INITIAL_SUPPLY;
 
         for (uint8 i = 2; i <= evolution_steps_count_; i++) {
-            console.log("i is %s", i);
             cursors[i] = SafeMath.add(
                 cursors[i - 1],
                 SafeMath.div(SafeMath.sub(cursors[i - 1], cursors[i - 2]), 3)
             );
-            console.log("cursors[i] is %s", cursors[i]);
         }
     }
 
@@ -131,17 +182,55 @@ contract Nftx is ERC721URIStorage {
         }
     }
 
-    function preOrderToken() external {
+    function getTokenPrice() public pure returns (uint256) {
+        return 100000000000000000;
+    }
+
+    function mintGen0Nft(uint8 numberOfToken_)
+        external
+        payable
+        distributePayment
+    {
         require(
-            _tokenIds.current() + 1 <= INITIAL_SUPPLY,
+            _tokenIds.current() + numberOfToken_ <= INITIAL_SUPPLY,
             "Initial offering is over"
         );
-        _safeMint(msg.sender, _tokenIds.current());
-        _tokenIds.increment();
-        tokens[_tokenIds.current()] = generateToken(seed);
-        if (_tokenIds.current() == INITIAL_SUPPLY - 1) {
-            turnBlindAuctionOff();
+        require(numberOfToken_ <= 3);
+        require(msg.value == getTokenPrice() * numberOfToken_);
+        for (uint8 i = 0; i < numberOfToken_; i++) {
+            _safeMint(msg.sender, _tokenIds.current());
+            _tokenIds.increment();
+            tokens[_tokenIds.current()] = generateToken(seed);
+            if (_tokenIds.current() == INITIAL_SUPPLY - 1) {
+                turnBlindAuctionOff();
+            }
         }
+    }
+
+    function mintEvolution(
+        uint256 token1Id_,
+        uint256 token2Id_,
+        uint256 token3Id_
+    ) external {
+        require(ownerOf(token1Id_) == msg.sender);
+        require(ownerOf(token2Id_) == msg.sender);
+        require(ownerOf(token3Id_) == msg.sender);
+        NFTX memory token1 = getNft(token1Id_);
+        NFTX memory token2 = getNft(token2Id_);
+        NFTX memory token3 = getNft(token3Id_);
+        require(token2._generation == token1._generation);
+        require(token3._generation == token1._generation);
+        require(token1._generation < MAX_EVOL);
+        _safeMint(msg.sender, cursors[token1._generation + 1]);
+        tokens[cursors[token1._generation]] = mergeTokens(
+            token1,
+            token2,
+            token3
+        );
+        cursors[token1._generation] = cursors[token1._generation + 1] + 1;
+        _burn(token1Id_);
+        _burn(token2Id_);
+        _burn(token3Id_);
     }
 
     function turnBlindAuctionOff() internal {
@@ -150,5 +239,14 @@ contract Nftx is ERC721URIStorage {
             INITIAL_SUPPLY
         );
         IS_BLIND_AUCTION = false;
+    }
+
+    function withDraw(uint256 amount)
+        public
+        canWithdraw
+        recordWithdraw(amount)
+    {
+        require(amount <= address(this).balance);
+        owner.transfer(amount);
     }
 }
