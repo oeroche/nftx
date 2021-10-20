@@ -88,8 +88,9 @@ describe('Greeter contract', () => {
 
   it('should preOrder a token', async () => {
     const [owner] = await ethers.getSigners();
+    const tokenPrice = await NFTXContract.getCurrentTokenPrice();
     await NFTXContract.mintGen0Nft(1, {
-      value: ethers.utils.parseEther('.1'),
+      value: tokenPrice,
     });
     const balance = await NFTXContract.balanceOf(owner.address);
     expect(balance).to.equal(1);
@@ -103,10 +104,7 @@ describe('Greeter contract', () => {
 
   it('should withdraw Contract Balance', async () => {
     const [owner] = await ethers.getSigners();
-    const withdrawable = (
-      await ContributorsContract.withdrawable(owner.address)
-    ).toString();
-
+    const withdrawable = await ContributorsContract.withdrawable(owner.address);
     const initialOwnerBalance = await owner.getBalance();
     const amount = await NFTXContract.provider.getBalance(NFTXContract.address);
     const tx = await NFTXContract.withDraw(withdrawable);
@@ -127,7 +125,7 @@ describe('Greeter contract', () => {
   it('should activate tokens when initial offering is over', async () => {
     for (let k = 0; k < INITIAL_OFFER - 1; k++) {
       await NFTXContract.mintGen0Nft(1, {
-        value: ethers.utils.parseEther('.1'),
+        value: await NFTXContract.getCurrentTokenPrice(),
       });
       let btm = Math.floor(Math.random() * 3);
       for (let i = 0; i < btm; i++) {

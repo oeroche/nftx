@@ -28,8 +28,8 @@ interface NftxInterface extends ethers.utils.Interface {
     "balanceOf(address)": FunctionFragment;
     "cursors(uint8)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
+    "getCurrentTokenPrice()": FunctionFragment;
     "getNft(uint256)": FunctionFragment;
-    "getTokenPrice()": FunctionFragment;
     "getTokenTotalCount()": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "isInitialized()": FunctionFragment;
@@ -65,12 +65,12 @@ interface NftxInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getNft",
-    values: [BigNumberish]
+    functionFragment: "getCurrentTokenPrice",
+    values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getTokenPrice",
-    values?: undefined
+    functionFragment: "getNft",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenTotalCount",
@@ -135,11 +135,11 @@ interface NftxInterface extends ethers.utils.Interface {
     functionFragment: "getApproved",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getNft", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getTokenPrice",
+    functionFragment: "getCurrentTokenPrice",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getNft", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getTokenTotalCount",
     data: BytesLike
@@ -281,12 +281,12 @@ export class Nftx extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    getCurrentTokenPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     getNft(
       id_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[[number, number] & { _genes: number; _generation: number }]>;
-
-    getTokenPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getTokenTotalCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -382,12 +382,12 @@ export class Nftx extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  getCurrentTokenPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
   getNft(
     id_: BigNumberish,
     overrides?: CallOverrides
   ): Promise<[number, number] & { _genes: number; _generation: number }>;
-
-  getTokenPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
   getTokenTotalCount(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -477,12 +477,12 @@ export class Nftx extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    getCurrentTokenPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
     getNft(
       id_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[number, number] & { _genes: number; _generation: number }>;
-
-    getTokenPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenTotalCount(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -626,9 +626,9 @@ export class Nftx extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getNft(id_: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    getCurrentTokenPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getTokenPrice(overrides?: CallOverrides): Promise<BigNumber>;
+    getNft(id_: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenTotalCount(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -733,12 +733,14 @@ export class Nftx extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getCurrentTokenPrice(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getNft(
       id_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    getTokenPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getTokenTotalCount(
       overrides?: CallOverrides

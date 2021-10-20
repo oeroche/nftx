@@ -64,11 +64,6 @@ contract Nftx is ERC721URIStorage {
         _;
     }
 
-    modifier onlyContributor() {
-        require(msg.sender == owner);
-        _;
-    }
-
     modifier distributePayment() {
         _;
         _contributors.distributePayment(msg.value);
@@ -182,8 +177,16 @@ contract Nftx is ERC721URIStorage {
         }
     }
 
-    function getTokenPrice() public pure returns (uint256) {
-        return 100000000000000000;
+    function getCurrentTokenPrice() public view returns (uint256) {
+        if (_tokenIds.current() <= INITIAL_SUPPLY / 4) {
+            return 0.001 ether;
+        } else if (_tokenIds.current() <= (2 * INITIAL_SUPPLY) / 4) {
+            return 0.01 ether;
+        } else if (_tokenIds.current() <= (3 * INITIAL_SUPPLY) / 4) {
+            return 0.1 ether;
+        } else {
+            return 1 ether;
+        }
     }
 
     function mintGen0Nft(uint8 numberOfToken_)
@@ -196,7 +199,7 @@ contract Nftx is ERC721URIStorage {
             "Initial offering is over"
         );
         require(numberOfToken_ <= 3);
-        require(msg.value == getTokenPrice() * numberOfToken_);
+        require(msg.value == getCurrentTokenPrice() * numberOfToken_);
         for (uint8 i = 0; i < numberOfToken_; i++) {
             _safeMint(msg.sender, _tokenIds.current());
             _tokenIds.increment();

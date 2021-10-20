@@ -23,7 +23,6 @@ interface ContributorsInterface extends ethers.utils.Interface {
   functions: {
     "distributePayment(uint256)": FunctionFragment;
     "distribution(address)": FunctionFragment;
-    "getWithdrawable(address)": FunctionFragment;
     "initialize(address)": FunctionFragment;
     "recordWithdraw(address,uint256)": FunctionFragment;
     "setDistribution(address[],uint256[])": FunctionFragment;
@@ -36,10 +35,6 @@ interface ContributorsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "distribution",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getWithdrawable",
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "initialize", values: [string]): string;
@@ -62,10 +57,6 @@ interface ContributorsInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "distribution",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getWithdrawable",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
@@ -136,11 +127,6 @@ export class Contributors extends BaseContract {
 
     distribution(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getWithdrawable(
-      contributor_: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     initialize(
       nftxAddress_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -167,11 +153,6 @@ export class Contributors extends BaseContract {
   ): Promise<ContractTransaction>;
 
   distribution(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  getWithdrawable(
-    contributor_: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   initialize(
     nftxAddress_: string,
@@ -200,11 +181,6 @@ export class Contributors extends BaseContract {
 
     distribution(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getWithdrawable(
-      contributor_: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     initialize(nftxAddress_: string, overrides?: CallOverrides): Promise<void>;
 
     recordWithdraw(
@@ -231,11 +207,6 @@ export class Contributors extends BaseContract {
     ): Promise<BigNumber>;
 
     distribution(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    getWithdrawable(
-      contributor_: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     initialize(
       nftxAddress_: string,
@@ -265,11 +236,6 @@ export class Contributors extends BaseContract {
 
     distribution(
       arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getWithdrawable(
-      contributor_: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
