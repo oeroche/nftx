@@ -20,11 +20,14 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface GeneScienceInterface extends ethers.utils.Interface {
   functions: {
-    "getNewDNA(string)": FunctionFragment;
+    "getNewDNA(uint256)": FunctionFragment;
     "mergeDNA(uint32,uint32,uint32)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "getNewDNA", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "getNewDNA",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "mergeDNA",
     values: [BigNumberish, BigNumberish, BigNumberish]
@@ -80,7 +83,10 @@ export class GeneScience extends BaseContract {
   interface: GeneScienceInterface;
 
   functions: {
-    getNewDNA(seed_: string, overrides?: CallOverrides): Promise<[number]>;
+    getNewDNA(
+      seed_: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[number]>;
 
     mergeDNA(
       dna1: BigNumberish,
@@ -90,7 +96,7 @@ export class GeneScience extends BaseContract {
     ): Promise<[number]>;
   };
 
-  getNewDNA(seed_: string, overrides?: CallOverrides): Promise<number>;
+  getNewDNA(seed_: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
   mergeDNA(
     dna1: BigNumberish,
@@ -100,7 +106,7 @@ export class GeneScience extends BaseContract {
   ): Promise<number>;
 
   callStatic: {
-    getNewDNA(seed_: string, overrides?: CallOverrides): Promise<number>;
+    getNewDNA(seed_: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
     mergeDNA(
       dna1: BigNumberish,
@@ -113,7 +119,10 @@ export class GeneScience extends BaseContract {
   filters: {};
 
   estimateGas: {
-    getNewDNA(seed_: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getNewDNA(
+      seed_: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     mergeDNA(
       dna1: BigNumberish,
@@ -125,7 +134,7 @@ export class GeneScience extends BaseContract {
 
   populateTransaction: {
     getNewDNA(
-      seed_: string,
+      seed_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

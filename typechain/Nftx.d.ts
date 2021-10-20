@@ -12,6 +12,7 @@ import {
   BaseContract,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -22,29 +23,34 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface NftxInterface extends ethers.utils.Interface {
   functions: {
     "BLIND_AUCTION_STARTING_INDEX()": FunctionFragment;
+    "MAX_EVOL()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "cursors(uint8)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "getNft(uint256)": FunctionFragment;
+    "getTokenPrice()": FunctionFragment;
     "getTokenTotalCount()": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "isInitialized()": FunctionFragment;
+    "mintEvolution(uint256,uint256,uint256)": FunctionFragment;
+    "mintGen0Nft(uint8)": FunctionFragment;
     "name()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
-    "preOrderToken()": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
+    "withDraw(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "BLIND_AUCTION_STARTING_INDEX",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "MAX_EVOL", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
@@ -63,6 +69,10 @@ interface NftxInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getTokenPrice",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getTokenTotalCount",
     values?: undefined
   ): string;
@@ -74,14 +84,18 @@ interface NftxInterface extends ethers.utils.Interface {
     functionFragment: "isInitialized",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "mintEvolution",
+    values: [BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintGen0Nft",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "preOrderToken",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "safeTransferFrom",
@@ -104,11 +118,16 @@ interface NftxInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "withDraw",
+    values: [BigNumberish]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "BLIND_AUCTION_STARTING_INDEX",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "MAX_EVOL", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "cursors", data: BytesLike): Result;
@@ -117,6 +136,10 @@ interface NftxInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getNft", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getTokenPrice",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getTokenTotalCount",
     data: BytesLike
@@ -129,12 +152,16 @@ interface NftxInterface extends ethers.utils.Interface {
     functionFragment: "isInitialized",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "preOrderToken",
+    functionFragment: "mintEvolution",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintGen0Nft",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "safeTransferFrom",
     data: BytesLike
@@ -153,6 +180,7 @@ interface NftxInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "withDraw", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
@@ -233,6 +261,8 @@ export class Nftx extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    MAX_EVOL(overrides?: CallOverrides): Promise<[number]>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -256,6 +286,8 @@ export class Nftx extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[[number, number] & { _genes: number; _generation: number }]>;
 
+    getTokenPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     getTokenTotalCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     isApprovedForAll(
@@ -266,16 +298,24 @@ export class Nftx extends BaseContract {
 
     isInitialized(overrides?: CallOverrides): Promise<[boolean]>;
 
+    mintEvolution(
+      token1Id_: BigNumberish,
+      token2Id_: BigNumberish,
+      token3Id_: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    mintGen0Nft(
+      numberOfToken_: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     name(overrides?: CallOverrides): Promise<[string]>;
 
     ownerOf(
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
-
-    preOrderToken(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     "safeTransferFrom(address,address,uint256)"(
       from: string,
@@ -316,9 +356,16 @@ export class Nftx extends BaseContract {
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    withDraw(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   BLIND_AUCTION_STARTING_INDEX(overrides?: CallOverrides): Promise<BigNumber>;
+
+  MAX_EVOL(overrides?: CallOverrides): Promise<number>;
 
   approve(
     to: string,
@@ -340,6 +387,8 @@ export class Nftx extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[number, number] & { _genes: number; _generation: number }>;
 
+  getTokenPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
   getTokenTotalCount(overrides?: CallOverrides): Promise<BigNumber>;
 
   isApprovedForAll(
@@ -350,13 +399,21 @@ export class Nftx extends BaseContract {
 
   isInitialized(overrides?: CallOverrides): Promise<boolean>;
 
+  mintEvolution(
+    token1Id_: BigNumberish,
+    token2Id_: BigNumberish,
+    token3Id_: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  mintGen0Nft(
+    numberOfToken_: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   name(overrides?: CallOverrides): Promise<string>;
 
   ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  preOrderToken(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   "safeTransferFrom(address,address,uint256)"(
     from: string,
@@ -395,8 +452,15 @@ export class Nftx extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  withDraw(
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     BLIND_AUCTION_STARTING_INDEX(overrides?: CallOverrides): Promise<BigNumber>;
+
+    MAX_EVOL(overrides?: CallOverrides): Promise<number>;
 
     approve(
       to: string,
@@ -418,6 +482,8 @@ export class Nftx extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[number, number] & { _genes: number; _generation: number }>;
 
+    getTokenPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
     getTokenTotalCount(overrides?: CallOverrides): Promise<BigNumber>;
 
     isApprovedForAll(
@@ -428,11 +494,21 @@ export class Nftx extends BaseContract {
 
     isInitialized(overrides?: CallOverrides): Promise<boolean>;
 
+    mintEvolution(
+      token1Id_: BigNumberish,
+      token2Id_: BigNumberish,
+      token3Id_: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    mintGen0Nft(
+      numberOfToken_: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     name(overrides?: CallOverrides): Promise<string>;
 
     ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-    preOrderToken(overrides?: CallOverrides): Promise<void>;
 
     "safeTransferFrom(address,address,uint256)"(
       from: string,
@@ -470,6 +546,8 @@ export class Nftx extends BaseContract {
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    withDraw(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -531,6 +609,8 @@ export class Nftx extends BaseContract {
   estimateGas: {
     BLIND_AUCTION_STARTING_INDEX(overrides?: CallOverrides): Promise<BigNumber>;
 
+    MAX_EVOL(overrides?: CallOverrides): Promise<BigNumber>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -548,6 +628,8 @@ export class Nftx extends BaseContract {
 
     getNft(id_: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
+    getTokenPrice(overrides?: CallOverrides): Promise<BigNumber>;
+
     getTokenTotalCount(overrides?: CallOverrides): Promise<BigNumber>;
 
     isApprovedForAll(
@@ -558,15 +640,23 @@ export class Nftx extends BaseContract {
 
     isInitialized(overrides?: CallOverrides): Promise<BigNumber>;
 
+    mintEvolution(
+      token1Id_: BigNumberish,
+      token2Id_: BigNumberish,
+      token3Id_: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    mintGen0Nft(
+      numberOfToken_: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     ownerOf(
       tokenId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    preOrderToken(
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "safeTransferFrom(address,address,uint256)"(
@@ -608,12 +698,19 @@ export class Nftx extends BaseContract {
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    withDraw(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     BLIND_AUCTION_STARTING_INDEX(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    MAX_EVOL(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     approve(
       to: string,
@@ -641,6 +738,8 @@ export class Nftx extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getTokenPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getTokenTotalCount(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -653,15 +752,23 @@ export class Nftx extends BaseContract {
 
     isInitialized(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    mintEvolution(
+      token1Id_: BigNumberish,
+      token2Id_: BigNumberish,
+      token3Id_: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    mintGen0Nft(
+      numberOfToken_: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     ownerOf(
       tokenId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    preOrderToken(
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "safeTransferFrom(address,address,uint256)"(
@@ -701,6 +808,11 @@ export class Nftx extends BaseContract {
       from: string,
       to: string,
       tokenId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withDraw(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
