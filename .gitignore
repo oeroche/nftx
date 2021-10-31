@@ -4,3 +4,4 @@ artifacts/
 .vscode/
 cache/
 yarn-error.log
+typechain
