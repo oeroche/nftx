@@ -5,3 +5,4 @@ artifacts/
 cache/
 yarn-error.log
 typechain
+.openzeppelin
