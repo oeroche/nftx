@@ -1,10 +1,13 @@
 pragma solidity ^0.8.0;
 
 contract GeneScience {
+    uint8 NUMBER_OF_GENES = 10;
+    uint256 MODULUS = 10**NUMBER_OF_GENES;
+
     constructor() {}
 
-    function getNewDNA(string memory seed_) public pure returns (uint32) {
-        return uint32(uint256(keccak256(abi.encode(seed_))));
+    function getNewDNA(uint256 seed_) public view returns (uint32) {
+        return uint32(uint256(keccak256(abi.encode(seed_))) % MODULUS);
     }
 
     function mergeDNA(
