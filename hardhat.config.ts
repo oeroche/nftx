@@ -1,7 +1,8 @@
-import '@nomiclabs/hardhat-waffle';
-import '@typechain/hardhat';
-import 'hardhat-gas-reporter';
-import * as dotenv from 'dotenv';
+import "@nomiclabs/hardhat-waffle";
+import "@typechain/hardhat";
+import "hardhat-gas-reporter";
+import * as dotenv from "dotenv";
+import "@openzeppelin/hardhat-upgrades";
 
 dotenv.config();
 
@@ -10,7 +11,7 @@ dotenv.config();
  */
 
 export default {
-  solidity: '0.8.3',
+  solidity: "0.8.3",
   gasReporter: {
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
   },

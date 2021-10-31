@@ -7,13 +7,9 @@ import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "hardhat/console.sol";
 import "./GeneScience.sol";
 import "./BlindAuction.sol";
+import "./Mergeable.sol";
 
-contract Nftx is
-    Initializable,
-    OwnableUpgradeable,
-    BlindAuction,
-    ERC721URIStorageUpgradeable
-{
+contract Nftx is Initializable, OwnableUpgradeable, BlindAuction, Mergeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     struct NFTX {
@@ -21,12 +17,11 @@ contract Nftx is
         uint16 _generation;
     }
 
-    CountersUpgradeable.Counter private _tokenIds;
+    CountersUpgradeable.Counter private _gen0CurrentCounter;
+    CountersUpgradeable.Counter private _evolutionCurrentCounter;
     GeneScience private _geneScience;
 
-    mapping(uint256 => NFTX) tokens;
-
-    mapping(uint8 => uint256) public cursors;
+    mapping(uint256 => NFTX) private tokens;
 
     uint256 private seed;
 
@@ -62,19 +57,9 @@ contract Nftx is
         initializer
     {
         __Ownable_init();
-        __ERC721_init("NFTX", "NFTX");
+        __Mergeable_init("NFTX", "NFTX");
         __BlindAuction_init(initialSupply_, maxBuy_);
         seed = seed_;
-
-        // Cursor generation for multiple generations
-        cursors[0] = 0;
-        cursors[1] = initialSupply;
-
-        for (uint8 i = 2; i <= evolution_steps_count_; i++) {
-            cursors[i] =
-                cursors[i - 1] +
-                ((cursors[i - 1] - cursors[i - 2]) / 3);
-        }
     }
 
     function setGeneScience(GeneScience geneScience_) public onlyOwner {
@@ -86,14 +71,16 @@ contract Nftx is
     }
 
     function getTokenTotalCount() external view returns (uint256) {
-        if (initialSupply < _tokenIds.current() + 1) {
-            return _tokenIds.current() + 1; //TODO: remove burned tokens
-        } else {
-            return initialSupply;
-        }
+        return
+            _gen0CurrentCounter.current() + _evolutionCurrentCounter.current();
     }
 
-    function getGen0Nft(uint256 id_) internal view returns (NFTX memory) {
+    function getGen0Nft(uint256 id_)
+        internal
+        view
+        afterBlindAuction
+        returns (NFTX memory)
+    {
         return tokens[_blindAuctionStartingIndex + (id_ % initialSupply)];
     }
 
@@ -113,10 +100,43 @@ contract Nftx is
     function preOrderToken(uint8 buyCount)
         external
         payable
-        auctionner(_tokenIds.current(), buyCount)
+        auctionner(buyCount)
     {
-        _safeMint(msg.sender, _tokenIds.current());
-        _tokenIds.increment();
-        tokens[_tokenIds.current()] = generateToken(seed);
+        _safeMint(msg.sender, _gen0CurrentCounter.current());
+        _gen0CurrentCounter.increment();
+        tokens[_gen0CurrentCounter.current()] = generateToken(
+            seed + _gen0CurrentCounter.current()
+        );
+    }
+
+    function mergeTokens(uint256[3] memory tokenIds_) public {
+        //TODO make payable
+        uint16 generation = getNft(tokenIds_[0])._generation;
+        for (uint256 k = 1; k < tokenIds_.length; k++) {
+            require(
+                tokens[tokenIds_[k]]._generation == generation,
+                "your token are not of the same generation"
+            );
+        }
+
+        uint32 nextGenes = _geneScience.mergeDNA(
+            [
+                getNft(tokenIds_[0])._genes,
+                getNft(tokenIds_[1])._genes,
+                getNft(tokenIds_[2])._genes
+            ]
+        );
+
+        tokens[initialSupply + _evolutionCurrentCounter.current()] = NFTX(
+            nextGenes,
+            generation++
+        );
+
+        _safeMerge(
+            initialSupply + _evolutionCurrentCounter.current(),
+            tokenIds_
+        );
+
+        _evolutionCurrentCounter.increment();
     }
 }

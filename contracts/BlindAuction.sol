@@ -1,27 +1,31 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "hardhat/console.sol";
 
 contract BlindAuction is Initializable {
     bool public isBlindActionActive;
     uint256 public initialSupply;
+    uint256 public remainingSupply;
     uint8 public maxBuy;
-    uint256 internal _blindAuctionStartingIndex;
+    uint256 public _blindAuctionStartingIndex;
 
     modifier afterBlindAuction() {
         require(isBlindActionActive == false, "blind auction is active");
         _;
     }
 
-    modifier auctionner(uint256 lastTokenId, uint8 buyCount) {
+    modifier auctionner(uint8 buyCount) {
         require(isBlindActionActive == true, "blind auction is not active"); // TODO: handle premature end (we should have an end date)
-        require(buyCount < maxBuy, "You cannot buy this many"); // TODO: handle tresholds in blind auction
-        require(
-            msg.value == buyCount * getAuctionPrice(lastTokenId),
-            "The price is not right"
-        );
+        require(buyCount < maxBuy, "You cannot buy this many");
+        uint256 cartPrice = 0;
+        for (uint8 k = 0; k < buyCount; k++) {
+            cartPrice += _getAuctionPrice(remainingSupply - k);
+        }
+        require(msg.value == cartPrice, "The price is not right");
         _;
-        if (lastTokenId == initialSupply - 1) {
+        remainingSupply--;
+        if (remainingSupply == 0) {
             _endBlindAuction();
         }
     }
@@ -31,6 +35,7 @@ contract BlindAuction is Initializable {
         initializer
     {
         isBlindActionActive = true;
+        remainingSupply = initialSupply_;
         initialSupply = initialSupply_;
         maxBuy = maxBuy_;
     }
@@ -40,20 +45,31 @@ contract BlindAuction is Initializable {
         isBlindActionActive = false;
     }
 
-    function getAuctionPrice(uint256 tokenId_) public view returns (uint256) {
-        require(tokenId_ <= initialSupply, "token not in initial supply");
-        if (tokenId_ < initialSupply / 5) {
+    function _getAuctionPrice(uint256 initialSupplyInvertedIndex_)
+        private
+        view
+        returns (uint256)
+    {
+        require(
+            initialSupplyInvertedIndex_ <= initialSupply,
+            "token not in initial supply"
+        );
+        if (initialSupplyInvertedIndex_ >= (4 * initialSupply) / 5) {
             return 0.01 ether;
         }
-        if (tokenId_ < (2 * initialSupply) / 5) {
+        if (initialSupplyInvertedIndex_ >= (3 * initialSupply) / 5) {
             return 0.05 ether;
         }
-        if (tokenId_ < (3 * initialSupply) / 5) {
+        if (initialSupplyInvertedIndex_ >= (2 * initialSupply) / 5) {
             return 0.1 ether;
         }
-        if (tokenId_ < (4 * initialSupply) / 5) {
+        if (initialSupplyInvertedIndex_ >= initialSupply / 5) {
             return 0.5 ether;
         }
         return 1 ether;
+    }
+
+    function getAuctionPrice() public view returns (uint256) {
+        return _getAuctionPrice(remainingSupply);
     }
 }
