@@ -45,11 +45,9 @@ contract BlindAuction is Initializable {
         isBlindActionActive = false;
     }
 
-    function _getAuctionPrice(uint256 initialSupplyInvertedIndex_)
-        private
-        view
-        returns (uint256)
-    {
+    function _getAuctionPrice(
+        uint256 initialSupplyInvertedIndex_ // TODO: do we need a bond curve ?
+    ) private view returns (uint256) {
         require(
             initialSupplyInvertedIndex_ <= initialSupply,
             "token not in initial supply"

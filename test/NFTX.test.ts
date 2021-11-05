@@ -11,7 +11,7 @@ import {
   Nftx__factory,
 } from "../typechain";
 
-const INITIAL_OFFER = 243;
+const INITIAL_OFFER = 2430;
 const EVOLUTION_STEPS = 5;
 const SEED = 1234567890;
 

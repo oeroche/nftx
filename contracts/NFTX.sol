@@ -13,7 +13,7 @@ contract Nftx is Initializable, OwnableUpgradeable, BlindAuction, Mergeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     struct NFTX {
-        uint32 _genes;
+        uint256 _genes;
         uint16 _generation;
     }
 
@@ -119,7 +119,7 @@ contract Nftx is Initializable, OwnableUpgradeable, BlindAuction, Mergeable {
             );
         }
 
-        uint32 nextGenes = _geneScience.mergeDNA(
+        uint256 nextGenes = _geneScience.mergeDNA(
             [
                 getNft(tokenIds_[0])._genes,
                 getNft(tokenIds_[1])._genes,
