@@ -102,14 +102,14 @@ contract Nftx is Initializable, OwnableUpgradeable, BlindAuction, Mergeable {
         payable
         auctionner(buyCount)
     {
-        _safeMint(msg.sender, _gen0CurrentCounter.current());
         _gen0CurrentCounter.increment();
+        _safeMint(msg.sender, _gen0CurrentCounter.current());
         tokens[_gen0CurrentCounter.current()] = generateToken(
             seed + _gen0CurrentCounter.current()
         );
     }
 
-    function mergeTokens(uint256[3] memory tokenIds_) public {
+    function mergeTokens(uint256[3] memory tokenIds_) public returns (uint256) {
         //TODO make payable
         uint16 generation = getNft(tokenIds_[0])._generation;
         for (uint256 k = 1; k < tokenIds_.length; k++) {
@@ -119,6 +119,8 @@ contract Nftx is Initializable, OwnableUpgradeable, BlindAuction, Mergeable {
             );
         }
 
+        _evolutionCurrentCounter.increment();
+
         uint256 nextGenes = _geneScience.mergeDNA(
             [
                 getNft(tokenIds_[0])._genes,
@@ -127,16 +129,14 @@ contract Nftx is Initializable, OwnableUpgradeable, BlindAuction, Mergeable {
             ]
         );
 
-        tokens[initialSupply + _evolutionCurrentCounter.current()] = NFTX(
-            nextGenes,
-            generation++
-        );
+        uint256 newId = initialSupply + _evolutionCurrentCounter.current();
+        tokens[newId] = NFTX(nextGenes, generation + 1);
 
         _safeMerge(
             initialSupply + _evolutionCurrentCounter.current(),
             tokenIds_
         );
 
-        _evolutionCurrentCounter.increment();
+        return newId;
     }
 }
